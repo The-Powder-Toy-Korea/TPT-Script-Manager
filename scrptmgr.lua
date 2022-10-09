@@ -1,10 +1,9 @@
---Cracker64's Autorun Script Manager
+--TPT Integrated Script Manager Korea
 --The autorun to end all autoruns
 --Version 3.12
 
 --TODO:
 --manual file addition (that can be anywhere and any extension)
---Moving window (because why not)
 --some more API functions
 --prettier, organize code
 
@@ -34,21 +33,28 @@
 --  Place a line '--VER num UPDATE link' in one of the first four lines of the file, see my above example
 --  The link at top downloads a file that contains ONLY version,full link,and prints the rest(changelog). See my link for example
 
-local jacobsmod = tpt.version.jacob1s_mod
-
 local icons = {
-	["delete1"] = "\xEE\x80\x85",
-	["delete2"] = "\xEE\x80\x86",
-	["folder"] = "\xEE\x80\x93"
+	["manager"] = "\xEE\x81\xAB",
+	["cancel"] = "\xEE\x9C\x91",
+	["filter"] = "\xEE\x9C\x9C",
+	["search"] = "\xEE\x9C\xA1",
+	["back"] = "\xEE\x9C\xAB",
+	["refresh"] = "\xEE\x9C\xAC",
+	["checkbox"] = "\xEE\x9C\xB9",
+	["checkboxcomposite"] = "\xEE\x9C\xBA",
+	["checkboxfill"] = "\xEE\x9C\xBB",
+	["delete"] = "\xEE\x9D\x8D",
+	["globe"] = "\xEE\x9D\xB4",
+	["restart"] = "\xEE\x9D\xB7",
+	["clear"] = "\xEE\xA2\x94",
+	["sync"] = "\xEE\xA2\x95",
+	["download"] = "\xEE\xA2\x96",
+	["upload"] = "\xEE\xA2\x98",
+	["openinnewwindow"] = "\xEE\xA2\xA7",
+	["accept"] = "\xEE\xA3\xBB",
+	["fileexplorer"] = "\xEE\xB1\x90",
+	["harddrive"] = "\xEE\xB6\xA2"
 }
-if jacobsmod then
-	icons = {
-		["delete1"] = "\133",
-		["delete2"] = "\134",
-		["folder"] = "\147"
-	}
-end
-
 
 if not socket then error("TPT version not supported") end
 if MANAGER then error("manager is already running") end
@@ -80,11 +86,11 @@ else
 		end
 	end
 	if OS == "WIN32" or OS == "WIN64" then
-		EXE_NAME = jacobsmod and "Jacob1\'s Mod.exe" or "Powder.exe"
+		EXE_NAME = "Powder.exe"
 	elseif OS == "MACOSX" then
 		EXE_NAME = "powder-x" --can't restart on OS X (if using < 91.0)
 	else
-		EXE_NAME = jacobsmod and "Jacob1\'s Mod" or "powder"
+		EXE_NAME = "powder"
 	end
 end
 local filenames = {}
@@ -378,14 +384,14 @@ new = function(x,y,h,t,m)
 	bar.total=t
 	bar.numshown=m
 	bar.pos=0
-	bar.length=math.floor((1/math.ceil(bar.total-bar.numshown+1))*bar.h)
+	bar.length=math.floor(bar.numshown / bar.total * bar.h)
 	bar.soffset=math.floor(bar.pos*((bar.h-bar.length)/(bar.total-bar.numshown)))
 	function bar:update(total,shown,pos)
 		self.pos=pos or 0
 		if self.pos<0 then self.pos=0 end
 		self.total=total
 		self.numshown=shown
-		self.length= math.floor((1/math.ceil(self.total-self.numshown+1))*self.h)
+		self.length= math.floor(bar.numshown / bar.total * bar.h)
 		self.soffset= math.floor(self.pos*((self.h-self.length)/(self.total-self.numshown)))
 	end
 	function bar:move(wheel)
@@ -423,7 +429,7 @@ ui_button = {
 new = function(x,y,w,h,f,text)
 	local b = ui_box.new(x,y,w,h)
 	b.f=f
-	b.t=ui_text.new(text,x+2,y+2)
+	b.t=ui_text.new(text,x+3,y+5)
 	b.drawbox=false
 	b.clicked=false
 	b.almostselected=false
@@ -466,7 +472,7 @@ end
 }
 ui_tooltip = {
 new = function(x,y,w,text)
-	local b = ui_box.new(x,y-1,w,0)
+	local b = ui_box.new(x+1,y+1,w,0)
 	function b:updatetooltip(tooltip)
 		self.tooltip = tooltip
 		self.length = #tooltip
@@ -515,7 +521,7 @@ new = function(x,y,w,text)
 	b.drawbackground = true
 	b:drawadd(function(self)
 		if self.tooltip ~= "" then
-			tpt.drawtext(self.x+1,self.y+2,self.tooltip)
+			tpt.drawtext(self.x+5,self.y+4,self.tooltip)
 		end
 		self:updatetooltip("")
 	end)
@@ -534,21 +540,21 @@ new_button = function(x,y,w,h,splitx,f,f2,text,localscript)
 	b.f=f b.f2=f2
 	b.localscript=localscript
 	b.splitx = splitx
-	b.t=ui_text.newscroll(text,x+24,y+2,splitx-24)
+	b.t=ui_text.newscroll(text,x+36,y+5,splitx-24)
 	b.clicked=false
 	b.selected=false
-	b.checkbut=ui_checkbox.up_button(x+splitx+9,y,33,9,ui_button.scriptcheck,"Update")
+	b.checkbut=ui_checkbox.up_button(x+splitx+15, y, 15, 15, ui_button.scriptcheck, icons["sync"])
 	b.drawbox=false
 	b:setbackground(127,127,127,100)
 	b:drawadd(function(self)
 		if self.t.text == "" then return end
 		self.drawbackground = false
-		if tpt.mousey >= self.y and tpt.mousey < self.y2 then
-			if tpt.mousex >= self.x and tpt.mousex < self.x+8 then
+		if tpt.mousey >= self.y and tpt.mousey < self.y+15 then
+			if tpt.mousex >= self.x and tpt.mousex < self.x+15 then
 				if self.localscript then
-					tooltip:settooltip("delete this script")
+					tooltip:settooltip("이 스크립트 삭제하기")
 				else
-					tooltip:settooltip("view script in browser")
+					tooltip:settooltip("브라우저에서 열기")
 				end
 			elseif tpt.mousex>=self.x and tpt.mousex<self.x2 then
 				local script
@@ -563,7 +569,7 @@ new_button = function(x,y,w,h,splitx,f,f2,text,localscript)
 				self.drawbackground = true
 			elseif tpt.mousex >= self.x2 then
 				if tpt.mousex < self.x2+9 and self.running then
-					tooltip:settooltip(online and "downloaded" or "running")
+					tooltip:settooltip(online and "다운로드됨" or "실행 중")
 				elseif tpt.mousex >= self.x2+9 and tpt.mousex < self.x2+43 and self.checkbut.canupdate and onlinescripts[self.ID] and onlinescripts[self.ID]["changelog"] then
 					tooltip:settooltip(onlinescripts[self.ID]["changelog"])
 				end
@@ -571,26 +577,21 @@ new_button = function(x,y,w,h,splitx,f,f2,text,localscript)
 		end
 		self.t:draw()
 		if self.localscript then
-			local swapicon = tpt.version.jacob1s_mod_build and tpt.version.jacob1s_mod_build > 76
-			local offsetX = swapicon and 1 or 0
-			local offsetY = swapicon and 2 or 0
-			local innericon = swapicon and icons["delete1"] or icons["delete2"]
-			local outericon = swapicon and icons["delete2"] or icons["delete1"]
-			if self.deletealmostselected then
-				self.deletealmostselected = false
-				tpt.drawtext(self.x+1+offsetX, self.y+1+offsetY, innericon, 255, 48, 32, 255)
-			else
-				tpt.drawtext(self.x+1+offsetX, self.y+1+offsetY, innericon, 160, 48, 32, 255)
-			end
-			tpt.drawtext(self.x+1+offsetX, self.y+1+offsetY, outericon, 255, 255, 255, 255)
+			tpt.drawtext(self.x+3, self.y+5, icons["delete"], 255, 128, 144, 255)
 		else
-			tpt.drawtext(self.x+1, self.y+1, icons["folder"], 255, 200, 80, 255)
+			tpt.drawtext(self.x+3, self.y+5, icons["openinnewwindow"], 0, 192, 255, 255)
 		end
-		tpt.drawrect(self.x+12,self.y+1,8,8)
-		if self.almostselected then self.almostselected=false tpt.fillrect(self.x+12,self.y+1,8,8,150,150,150)
-		elseif self.selected then tpt.fillrect(self.x+12,self.y+1,8,8) end
+		if not self.selected then
+			tpt.drawtext(self.x+18, self.y+5, icons["checkbox"])
+		end
+		if self.almostselected then
+			self.almostselected = false 
+			tpt.drawtext(self.x+18, self.y+5, icons["checkboxfill"], 255, 255, 255, 192)
+		elseif self.selected then
+			tpt.drawtext(self.x+18, self.y+5, icons["checkboxcomposite"])
+		end
 		local filepath = self.ID and localscripts[self.ID] and localscripts[self.ID]["path"] or self.t.text
-		if self.running then tpt.drawtext(self.x+self.splitx+2,self.y+2,online and "D" or "R") end
+		if self.running then tpt.drawtext(self.x+self.splitx+3,self.y+5,online and icons["harddrive"] or "R") end
 		if self.checkbut.canupdate then self.checkbut:draw() end
 	end)
 	b:moveadd(function(self,x,y)
@@ -624,15 +625,14 @@ new = function(x,y,w,h)
 	local box = ui_box.new(x,y,w,h)
 	box.list={}
 	box.numlist = 0
-	box.max_lines = math.floor(box.h/10)-1
-	box.max_text_width = math.floor(box.w*0.8)
-	box.splitx=x+box.max_text_width
-	box.scrollbar = ui_scrollbar.new(box.x2-2,box.y+11,box.h-12,0,box.max_lines)
+	box.max_lines = math.floor(box.h / 15) - 1
+	box.max_text_width = 206
+	box.splitx = x + box.max_text_width
+	box.scrollbar = ui_scrollbar.new(box.x2-2,box.y+18,box.h-20,0,box.max_lines)
 	box.lines={
-		ui_line.new(box.x+1,box.y+10,box.x2-1,box.y+10,170,170,170),
-		ui_line.new(box.x+22,box.y+10,box.x+22,box.y2-1,170,170,170),
-		ui_line.new(box.splitx,box.y+10,box.splitx,box.y2-1,170,170,170),
-		ui_line.new(box.splitx+9,box.y+10,box.splitx+9,box.y2-1,170,170,170),
+		ui_line.new(box.x+1,box.y+16,box.x2-1,box.y+16,170,170,170),
+		ui_line.new(box.x+31,box.y+16,box.x+31,box.y2-1,170,170,170),
+		ui_line.new(box.splitx,box.y+16,box.splitx,box.y2-1,170,170,170),
 	}
 	function box:updatescroll()
 		self.scrollbar:update(self.numlist,self.max_lines)
@@ -642,14 +642,13 @@ new = function(x,y,w,h)
 		self.numlist=0
 	end
 	function box:add(f,f2,text,localscript)
-		local but = ui_checkbox.new_button(self.x,self.y+1+((self.numlist+1)*10),tpt.textwidth(text)+4,10,self.max_text_width,f,f2,text,localscript)
+		local but = ui_checkbox.new_button(self.x,self.y+1+((self.numlist+1)*15),tpt.textwidth(text)+4,15,self.max_text_width,f,f2,text,localscript)
 		table.insert(self.list,but)
 		self.numlist = #self.list
 		return but
 	end
 	box:drawadd(function (self)
-		tpt.drawtext(self.x+24,self.y+2,"Files in "..TPT_LUA_PATH.." folder")
-		tpt.drawtext(self.splitx+11,self.y+2,"Update")
+		tpt.drawtext(self.x+36, self.y+4, TPT_LUA_PATH.." 폴더의 파일")
 		for i,line in ipairs(self.lines) do
 			line:draw()
 		end
@@ -675,7 +674,7 @@ new = function(x,y,w,h)
 		end
 	end)
 	function box:scroll(amount)
-		local move = amount*10
+		local move = amount*15
 		if move==0 then return end
 		for i,check in ipairs(self.list) do
 			check:onmove(0,move)
@@ -685,7 +684,7 @@ new = function(x,y,w,h)
 		if mx<self.x or mx>self.x2 or my<self.y or my>self.y2-7 then return false end
 		local scrolled = self.scrollbar:process(mx,my,button,event,wheel)
 		if scrolled then self:scroll(scrolled) end
-		local which = math.floor((my-self.y-11)/10)+1
+		local which = math.floor((my-self.y-11)/15)+1
 		if which>0 and which<=self.numlist then self.list[which+self.scrollbar.pos]:process(mx,my,button,event,wheel) end
 		if event == 2 then
 			for i,v in ipairs(self.list) do v.clicked = false end
@@ -778,10 +777,10 @@ new = function(x,y,w,h)
 end
 }
 --Main window with everything!
-local mainwindow = ui_window.new(50,50,525,300)
+local mainwindow = ui_window.new(57,51,513,321)
 mainwindow:setbackground(10,10,10,235) mainwindow.drawbackground=true
-mainwindow:add(ui_console.new(275,148,300,189),"menuconsole")
-mainwindow:add(ui_checkbox.new(50,80,225,257),"checkbox")
+mainwindow:add(ui_console.new(297,87,273,285),"menuconsole")
+mainwindow:add(ui_checkbox.new(57,71,240,301),"checkbox")
 tooltip = ui_tooltip.new(0,1,250,"")
 
 --Some API functions you can call from other scripts
@@ -879,7 +878,7 @@ local function do_restart()
 	if OS == "WIN32" or OS == "WIN64" then
 		os.execute("TASKKILL /IM \""..EXE_NAME.."\" /F &&START .\\\""..EXE_NAME.."\"")
 	elseif OS == "OSX" then
-		MANAGER.print("Can't restart on OS X when using game versions less than 91.0, please manually close and reopen The Powder Toy")
+		MANAGER.print("Can't restart on macOS when using game versions less than 91.0, please manually close and reopen The Powder Toy")
 		return
 	else
 		os.execute("killall -s KILL \""..EXE_NAME.."\" && ./\""..EXE_NAME.."\"")
@@ -896,23 +895,20 @@ local function open_link(url)
 end
 --TPT interface
 local function step()
-	if jacobsmod then
-		tpt.fillrect(0,0,gfx.WIDTH,gfx.HEIGHT,0,0,0,150)
-	else
-		tpt.fillrect(-1,-1,gfx.WIDTH,gfx.HEIGHT,0,0,0,150)
-	end
+	tpt.fillrect(-1,-1,gfx.WIDTH,gfx.HEIGHT,0,0,0,150)
 	mainwindow:draw()
-	tpt.drawtext(280,140,"Console Output:")
+	tpt.drawtext(80, 58, "스크립트 관리자* " ..MANAGER.version)
 	if requiresrestart then
-		tpt.drawtext(280,88,"Disabling a script requires a restart for effect!",255,50,50)
+		tpt.drawtext(302, 58, "스크립트를 비활성화하려면 다시 시작해야 합니다.", 255, 50, 50)
+	else
+		tpt.drawtext(292, 58, "스크립트를 클릭하여 토글하고 ".. (online and icons["download"] or icons["accept"]) .. " 단추를 누르세요.")
 	end
-	tpt.drawtext(55,55,"Click a script to toggle, hit DONE when finished")
-	tpt.drawtext(474,55,"Script Manager v"..MANAGER.version)--479 for simple versions
+	tpt.drawtext(302,75,"콘솔 출력:")
 	tooltip:draw()
 
 	if online_req and online then
-		local textwidth = tpt.textwidth("Loading ...")
-		tpt.drawtext(mainwindow.checkbox.x + (mainwindow.checkbox.w - textwidth) / 2, mainwindow.checkbox.y + (mainwindow.checkbox.h - 6) / 2, "Loading ...")
+		local textwidth = tpt.textwidth("불러오는 중...")
+		tpt.drawtext(mainwindow.checkbox.x + (mainwindow.checkbox.w - textwidth) / 2, mainwindow.checkbox.y + (mainwindow.checkbox.h - 6) / 2, "불러오는 중...")
 	end
 end
 local function mouseclick(mousex,mousey,button,event,wheel)
@@ -923,9 +919,7 @@ local function mouseclick(mousex,mousey,button,event,wheel)
 	mainwindow:process(mousex,mousey,button,event,wheel)
 	return false
 end
-local jacobsmod_old_menu_check = false
 local function keypress(key,nkey,modifier,event)
-	if jacobsmod and (key == 'o' or nkey == 96) and event == 1 then jacobsmod_old_menu_check = true end
 	if nkey==27 and not MANAGER.hidden then MANAGER.hidden=true return false end
 	if MANAGER.hidden then return end
 
@@ -941,9 +935,6 @@ end
 --small button on right to bring up main menu
 local WHITE = {255,255,255,255}
 local BLACK = {0,0,0,255}
-local ICON = math.random(2) --pick a random icon
-local lua_letters= {{{2,2,2,7},{2,7,4,7},{6,7,6,11},{6,11,8,11},{8,7,8,11},{10,11,12,11},{10,11,10,15},{11,13,11,13},{12,11,12,15},},
-	{{2,3,2,13},{2,14,7,14},{4,3,4,12},{4,12,7,12},{7,3,7,12},{9,3,12,3},{9,3,9,14},{10,8,11,8},{12,3,12,14},}}
 local function smallstep()
 	gfx.drawRect(sidebutton.x, sidebutton.y+1, sidebutton.w+1, sidebutton.h+1,200,200,200)
 	local color=WHITE
@@ -952,19 +943,7 @@ local function smallstep()
 		gfx.fillRect(sidebutton.x, sidebutton.y+1, sidebutton.w+1, sidebutton.h+1)
 		color=BLACK
 	end
-	for i,dline in ipairs(lua_letters[ICON]) do
-		tpt.drawline(dline[1]+sidebutton.x,dline[2]+sidebutton.y,dline[3]+sidebutton.x,dline[4]+sidebutton.y,color[1],color[2],color[3])
-	end
-	if jacobsmod_old_menu_check then
-		local ypos = 134
-		if jacobsmod and tpt.oldmenu and tpt.oldmenu()==1 then
-			ypos = 390
-		elseif tpt.num_menus then
-			ypos = 390-16*tpt.num_menus()-(not jacobsmod and 16 or 0)
-		end
-		sidebutton:onmove(0, ypos-sidebutton.y)
-		jacobsmod_old_menu_check = false
-	end
+	tpt.drawtext(sidebutton.x+2, sidebutton.y+4, icons["manager"], color[1], color[2], color[3], 255)
 	check_req_status()
 end
 --button functions on click
@@ -982,7 +961,7 @@ function ui_button.reloadpressed(self)
 		end
 	else
 		search_terms = {}
-		local filter = tpt.input("Script filtering", "Enter search terms to filter by")
+		local filter = tpt.input("스크립트 검색", "스크립트를 검색합니다.")
 		for match in filter:gmatch("%w+") do
 			table.insert(search_terms, match)
 		end
@@ -1018,7 +997,7 @@ function ui_button.uploadscript(self)
 end
 local lastpaused
 function ui_button.sidepressed(self)
-	if TPTMP and TPTMP.chatHidden == false then print("minimize TPTMP before opening the manager") return end
+	if TPTMP and TPTMP.chatHidden == false then print("Minimize Multiplay Manager before opening the Script Manager") return end
 	MANAGER.hidden = not MANAGER.hidden
 	ui_button.localview()
 	if not MANAGER.hidden then
@@ -1029,7 +1008,6 @@ function ui_button.sidepressed(self)
 		tpt.set_pause(lastpaused)
 	end
 end
-local donebutton
 function ui_button.donepressed(self)
 	MANAGER.hidden = true
 	for i,but in ipairs(mainwindow.checkbox.list) do
@@ -1113,7 +1091,7 @@ function ui_button.pressed(self)
 end
 function ui_button.delete(self)
 	--there is no tpt.confirm() yet
-	if tpt.input("Delete File", "Delete "..self.t.text.."?", "yes", "no") == "yes" then
+	if tpt.input("파일 제거", self.t.text.."을(를) 제거하시겠어요?", "확인", "취소") == "확인" then
 		local filepath = self.ID and localscripts[self.ID]["path"] or self.t.text
 		fs.removeFile(TPT_LUA_PATH.."/"..filepath:gsub("\\","/"))
 		if running[filepath] then running[filepath] = nil end
@@ -1144,70 +1122,71 @@ function ui_button.scriptcheck(self)
 			do_restart()
 		else
 			save_last()
-			MANAGER.print("Updated "..onlinescripts[self.ID]["name"])
+			MANAGER.print(onlinescripts[self.ID]["name"].."를 업데이트함")
 		end
 	end
 end
 function ui_button.doupdate(self)
-	if jacobsmod and jacobsmod >= 30 then
-		fileSystem.move("scriptmanager.lua", "scriptmanagerold.lua")
-		download_script(1, 'scriptmanager.lua')
-	else
-		fileSystem.move("autorun.lua", "autorunold.lua")
-		download_script(1, 'autorun.lua')
-	end
+	fileSystem.move("autorun.lua", "autorunold.lua")
+	download_script(1, 'autorun.lua')
 	localscripts[1] = updatetable[1]
 	do_restart()
 end
+local globebutton
+local donebutton
 local uploadscriptbutton, reloadbutton
 function ui_button.localview(self)
 	if online then
 		online = false
 		gen_buttons()
-		donebutton.t.text = "DONE"
-		donebutton.w = 29 donebutton.x2 = donebutton.x + donebutton.w
+		globebutton.t.text = icons["globe"]
+		globebutton.f = ui_button.onlineview
+		donebutton.t.text = (requiresrestart and icons["restart"] or icons["accept"])
+		donebutton.t.x = 538
+		donebutton.x = 535
+		donebutton.x2 = 550
 		donebutton.f = ui_button.donepressed
-		uploadscriptbutton.t.text = icons["folder"].." Script Folder"
-		reloadbutton.t.text = "RELOAD"
+		uploadscriptbutton.t.text = icons["fileexplorer"]
+		reloadbutton.t.text = icons["refresh"]
 	end
 end
 function ui_button.onlineview(self)
 	if not online then
 		online = true
 		gen_buttons()
-		donebutton.t.text = "DOWNLOAD"
-		donebutton.w = 55 donebutton.x2 = donebutton.x + donebutton.w
+		globebutton.t.text = icons["harddrive"]
+		globebutton.f = ui_button.localview
+		donebutton.t.text = icons["download"]
+		donebutton.t.x = 262
+		donebutton.x = 259
+		donebutton.x2 = 274
 		donebutton.f = ui_button.downloadpressed
-		uploadscriptbutton.t.text = "Upload Script"
-		reloadbutton.t.text = "FILTER"
+		uploadscriptbutton.t.text = icons["upload"]
+		reloadbutton.t.text = icons["filter"]
 		search_terms = {}
 	end
 end
 --add buttons to window
-donebutton = ui_button.new(55,339,29,10,ui_button.donepressed,"DONE")
+mainwindow:add(ui_button.new(59, 53, 15, 15, ui_button.sidepressed, icons["back"]))
+globebutton = ui_button.new(191, 53, 15, 15, ui_button.onlineview, icons["globe"])
+mainwindow:add(globebutton)
+reloadbutton = ui_button.new(208, 53, 15, 15, ui_button.reloadpressed, icons["refresh"])
+mainwindow:add(reloadbutton)
+uploadscriptbutton = ui_button.new(225, 53, 15, 15, ui_button.uploadscript, icons["fileexplorer"])
+mainwindow:add(uploadscriptbutton)
+mainwindow:add(ui_button.new(242, 53, 15, 15, ui_button.changedir, icons["search"]))
+donebutton = ui_button.new(535, 53, 15, 15, ui_button.donepressed, icons["accept"])
 mainwindow:add(donebutton)
-mainwindow:add(ui_button.new(134,339,40,10,ui_button.sidepressed,"CANCEL"))
---mainwindow:add(ui_button.new(152,339,29,10,ui_button.selectnone,"NONE"))
-local nonebutton = ui_button.new(62,81,8,8,ui_button.selectnone,"")
+mainwindow:add(ui_button.new(552, 53, 15, 15, ui_button.sidepressed, icons["cancel"]))
+local nonebutton = ui_button.new(75, 74, 10, 10,ui_button.selectnone,"")
 nonebutton.drawbox = true
 mainwindow:add(nonebutton)
-mainwindow:add(ui_button.new(538,339,33,10,ui_button.consoleclear,"CLEAR"))
-reloadbutton = mainwindow:add(ui_button.new(278,67,39,10,ui_button.reloadpressed,"RELOAD"), "reload")
-mainwindow:add(ui_button.new(378,67,51,10,ui_button.changedir,"Change dir"))
-uploadscriptbutton = mainwindow:add(ui_button.new(478,67,79,10,ui_button.uploadscript, icons["folder"].." Script Folder"))
-local tempbutton = ui_button.new(60, 65, 30, 10, ui_button.localview, "Local")
-tempbutton.drawbox = true
-mainwindow:add(tempbutton)
-tempbutton = ui_button.new(100, 65, 35, 10, ui_button.onlineview, "Online")
-tempbutton.drawbox = true
-mainwindow:add(tempbutton)
+mainwindow:add(ui_button.new(552, 69, 15, 15, ui_button.consoleclear,icons["clear"]))
 local ypos = 134
-if jacobsmod and tpt.oldmenu and tpt.oldmenu()==1 then
-	ypos = 390
-elseif tpt.num_menus then
-	ypos = 390-16*tpt.num_menus()-(not jacobsmod and 16 or 0)
+if tpt.num_menus then
+	ypos = 390-16*tpt.num_menus()-(16 or 0)
 end
-sidebutton = ui_button.new(gfx.WIDTH-16,ypos,14,15,ui_button.sidepressed,'')
+sidebutton = ui_button.new(gfx.WIDTH-16,gfx.HEIGHT-305,14,14,ui_button.sidepressed,'')
 
 local function gen_buttons_local()
 	local count = 0
@@ -1246,7 +1225,7 @@ local function gen_buttons_online()
 	end
 
 	online_req = http.get("https://starcatcher.us/scripts/main.lua")
-	
+
 	if first_online then
 		first_online = false
 		script_manager_update_req = http.get("https://starcatcher.us/scripts/main.lua?info=1")
@@ -1269,7 +1248,7 @@ local function check_online_req_status()
 			MANAGER.print("script list download failed with status code " .. status_code, 255, 0, 0)
 			return
 		end
-		
+
 		if not online then return end
 
 		onlinescripts = readScriptInfo(list)
@@ -1307,11 +1286,11 @@ local function check_update_req_status()
 			MANAGER.print("self update check failed with status code " .. status_code, 255, 0, 0)
 			return
 		end
-		
+
 		updatetable = readScriptInfo(updateinfo)
 		if not updatetable[1] then return end
 		if tonumber(updatetable[1].version) > scriptversion then
-			local updatebutton = ui_button.new(278,127,40,10,ui_button.doupdate,"UPDATE")
+			local updatebutton = ui_button.new(276,53,110,15,ui_button.doupdate,icons["sync"].." 업데이트 사용 가능")
 			updatebutton.t:setcolor(25,255,25)
 			mainwindow:add(updatebutton)
 			MANAGER.print("A script manager update is available! Click UPDATE",25,255,55)
