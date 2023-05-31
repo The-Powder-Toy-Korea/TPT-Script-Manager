@@ -34,7 +34,7 @@
 --  The link at top downloads a file that contains ONLY version,full link,and prints the rest(changelog). See my link for example
 
 local icons = {
-	["manager"] = "\xEE\x81\xAB",
+	["manager"] = "\xEE\x81\xAF",
 	["cancel"] = "\xEE\x9C\x91",
 	["filter"] = "\xEE\x9C\x9C",
 	["search"] = "\xEE\x9C\xA1",
@@ -569,7 +569,7 @@ new_button = function(x,y,w,h,splitx,f,f2,text,localscript)
 				self.drawbackground = true
 			elseif tpt.mousex >= self.x2 then
 				if tpt.mousex < self.x2+9 and self.running then
-					tooltip:settooltip(online and "다운로드됨" or "실행 중")
+					tooltip:settooltip(online and "내려받음" or "실행 중")
 				elseif tpt.mousex >= self.x2+9 and tpt.mousex < self.x2+43 and self.checkbut.canupdate and onlinescripts[self.ID] and onlinescripts[self.ID]["changelog"] then
 					tooltip:settooltip(onlinescripts[self.ID]["changelog"])
 				end
