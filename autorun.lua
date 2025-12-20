@@ -147,7 +147,11 @@ local function readScriptInfo(list)
 		local t = {}
 		local ID = 0
 		for k,v in i:gmatch("(%w+):\"([^\"]*)\"") do
-			t[k]= tonumber(v) or v:gsub("\r",""):gsub("\\n","\n")
+			if k == "version" or k == "ID" or k == "update" then
+				t[k] = tonumber(v)
+			else
+				t[k]= v:gsub("\r",""):gsub("\\n","\n")
+			end
 		end
 		if not t.ID then
 			print("Skipping invalid script in script list")
