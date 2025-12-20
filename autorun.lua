@@ -186,22 +186,24 @@ local function save_last()
 			savestring = savestring.."\nSET "..k.." "..n..":\""..v.."\""
 		end
 	end
-	local f = io.open(TPT_LUA_PATH..PATH_SEP.."autorunsettings.txt", "wb")
+	local f = io.open(TPT_LUA_PATH..PATH_SEP.."autorunsettings.txt.tmp", "wb")
 	if f then
 		f:write(savestring)
 		f:close()
+		fs.move(TPT_LUA_PATH..PATH_SEP.."autorunsettings.txt.tmp", TPT_LUA_PATH..PATH_SEP.."autorunsettings.txt", true)
 	else
 		MANAGER.print("Couldn't save autorunsettings.txt")
 	end
 
 	save_dir()
 
-	f = io.open(TPT_LUA_PATH..PATH_SEP.."downloaded"..PATH_SEP.."scriptinfo", "wb")
+	f = io.open(TPT_LUA_PATH..PATH_SEP.."downloaded"..PATH_SEP.."scriptinfo.tmp", "wb")
 	if f then
 		for k,v in pairs(localscripts) do
 			f:write(scriptInfoString(v).."\n")
 		end
 		f:close()
+		fs.move(TPT_LUA_PATH..PATH_SEP.."downloaded"..PATH_SEP.."scriptinfo.tmp", TPT_LUA_PATH..PATH_SEP.."downloaded"..PATH_SEP.."scriptinfo", true)
 	end
 end
 
@@ -961,9 +963,10 @@ end
 local function download_script(ID, location, cb)
 	download_file("https://starcatcher.us/scripts/main.lua?get=" .. ID, function(file, status_code)
 		if file and status_code == 200 then
-			f = io.open(location, "wb")
+			f = io.open(location .. ".tmp", "wb")
 			f:write(file)
 			f:close()
+			fs.move(location .. ".tmp", location, true)
 			cb(true, status_code)
 		else
 			MANAGER.print("Got http status " .. status_code .. " while downloading script", 255, 0, 0)
