@@ -922,8 +922,8 @@ function download_file(url, cb)
 		return false
 	end
 	local req = http.get(url)
-	local timeout_after = socket.gettime() + 3
-	table.insert(active_downloads, {req=req, timeout_after=timeout_after, cb=cb})
+	local timeout_after = socket.gettime() + 5
+	table.insert(active_downloads, {req=req, timeout_after=timeout_after, last_progress=0, cb=cb})
 end
 
 local function process_downloads()
@@ -933,7 +933,13 @@ local function process_downloads()
 		local timeout_after = v["timeout_after"]
 
 		local status = req:status()
-		if status ~= "running" then
+		if status == "running" then
+			local script_size, script_progress = req:progress()
+			if script_progress > v["last_progress"] then
+				v["last_progress"] = script_progress
+				v["timeout_after"] = socket.gettime() + 5
+			end
+		elseif status ~= "running" then
 			active_downloads[k] = nil
 			local body, status_code = req:finish()
 			if status_code and status_code ~= 200 then
